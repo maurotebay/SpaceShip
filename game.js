@@ -53,9 +53,10 @@
             }
             // Move Spaceship
             if (pressing[KEY_RIGHT])
-                player.move('x', 10, 'right');
+                player.move(10, 'right');
             if (pressing[KEY_LEFT])
-                player.move('x', 10, 'left');
+                player.move(10, 'left');
+
             // Out Screen
             if (player.x > canvas.width - player.width)
                 player.x = canvas.width - player.width;
@@ -91,7 +92,7 @@
                 }
 
                 //Move enemy
-                enemies[i].move('y', 5, 'down');
+                enemies[i].move(5, 'down');
                 if (enemies[i].y > canvas.height) {
                     enemies.splice(i, 1);
                     enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
@@ -107,7 +108,8 @@
                 for (var j = 0, sl = shots.length; j < sl; j++) {
                     if (shots[j].intersects(enemies[i])) {
                         enemies[i].healthLoss();
-                        shots.splice(j--, 1);//dissapear shot
+                        //dissapear shot
+                        shots.splice(j--, 1);
                         sl--;
                     }
                 }
@@ -132,7 +134,7 @@
 
             // Move Shots
             for (var i = 0, l = shots.length; i < l; i++) {
-                shots[i].move('y', 10, 'up');
+                shots[i].move(10, 'up');
                 if (shots[i].y < 0) {
                     shots.splice(i--, 1);
                     l--;
@@ -141,7 +143,7 @@
 
             // Move PowerUps
             for (var i = 0, l = powerups.length; i < l; i++) {
-                powerups[i].move('y', 5, 'down');
+                powerups[i].move(5, 'down');
                 if (player.intersects(powerups[i])) {
                     player.effect(powerups[i].type);
                     powerups.splice(i--, 1);
@@ -158,17 +160,19 @@
 
             // Move Messages
             for (var i = 0, l = messages.length; i < l; i++) {
-                messages[i].y += 2;
+                messages[i].move(2, 'down');
                 if (messages[i].y < 260) {
                     messages.splice(i--, 1);
                     l--;
                 }
             }
 
+            //invincibility timer
             if (player.timer > 0) {
                 player.timer--;
             }
 
+            //die
             if (player.health < 1) {
                 gameOver = true;
                 pause = true;
@@ -258,6 +262,7 @@
             function (callback) { window.setTimeout(callback, 17); };
     })();
 
+    //random int generator
     function random(max) {
         return ~~(Math.random() * max);
     }
@@ -287,7 +292,7 @@
             this.height = (height === undefined) ? this.width : height;
         }
 
-        intersects(rect) {
+        intersects(rect) {      //returns true if 2 rectangles intersect
 
             if (rect === undefined) {
                 window.console.warn('Missing parameters');
@@ -324,22 +329,19 @@
             }
         }
 
-        move(axis, unit, direction) {
-            if (axis === 'x') {
-                if (direction === 'left') {
-                    this.x -= unit;
-                }
-                if (direction === 'right') {
-                    this.x += unit;
-                }
+        //moves object on the direction indicated, the amount of unit(s) indicated
+        move(unit, direction) {
+            if (direction === 'left') {
+                this.x -= unit;
             }
-            if (axis === 'y') {
-                if (direction === 'up') {
-                    this.y -= unit;
-                }
-                if (direction === 'down') {
-                    this.y += unit;
-                }
+            if (direction === 'right') {
+                this.x += unit;
+            }
+            if (direction === 'up') {
+                this.y -= unit;
+            }
+            if (direction === 'down') {
+                this.y += unit;
             }
         }
 
@@ -384,11 +386,27 @@
 
     }
 
-    class Message {
+    class Message{
         constructor(string, x, y) {
             this.string = (string === undefined) ? '?' : string;
             this.x = (x === undefined) ? 0 : x;
             this.y = (y === undefined) ? 0 : y;
+        }
+
+        //move message
+        move(unit, direction) {
+            if (direction === 'left') {
+                this.x -= unit;
+            }
+            if (direction === 'right') {
+                this.x += unit;
+            }
+            if (direction === 'up') {
+                this.y -= unit;
+            }
+            if (direction === 'down') {
+                this.y += unit;
+            }
         }
     }
 
