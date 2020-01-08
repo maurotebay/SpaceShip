@@ -1,11 +1,10 @@
 (function () {
+
     'use strict';
     window.addEventListener('load', init, false);
     var KEY_ENTER = 13;
     var KEY_LEFT = 37;
-    var KEY_UP = 38;
     var KEY_RIGHT = 39;
-    var KEY_DOWN = 40;
     var KEY_SPACE = 32;
     var canvas = null, ctx = null;
     var lastPress = null;
@@ -24,11 +23,11 @@
         ctx = canvas.getContext('2d');
         canvas.width = 200;
         canvas.height = 300;
-        player = new Rectangle(90, 280, 10, 10, 3);
+        player = new SpaceShip(90, 280, 10, 10, 3);
 
         //Create frist 4 enemies
         for (var c = 0; c < 4; c++) {
-            enemies.push(new Rectangle(random(canvas.width / 10) * 10, 0, 10, 10, 2));
+            enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
         }
 
         run();
@@ -52,9 +51,9 @@
             }
             // Move Spaceship
             if (pressing[KEY_RIGHT])
-                player.x += 10;
+                player.move('x', 10, 'right');
             if (pressing[KEY_LEFT])
-                player.x -= 10;
+                player.move('x', 10, 'left');
             // Out Screen
             if (player.x > canvas.width - player.width)
                 player.x = canvas.width - player.width;
@@ -73,30 +72,30 @@
                 //Enemies health loss
                 for (var j = 0, sl = shots.length; j < sl; j++) {
                     if (shots[j].intersects(enemies[i])) {
-                        enemies[i].health--;
-                        shots.splice(j--, 1);
+                        enemies[i].healthLoss();
+                        shots.splice(j--, 1); //dissapear shot
                         sl--;
                     }
                 }
                 
                 //Move enemy
-                enemies[i].y += 5;
+                enemies[i].move('y', 5, 'down');
                 if (enemies[i].y > canvas.height) {
                     enemies.splice(i, 1);
-                    enemies.push(new Rectangle(random(canvas.width / 10) * 10, 0, 10, 10, 2));
+                    enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
                 }
 
                 // Player Intersects Enemy
                 if (player.intersects(enemies[i]) && player.timer<1) {
-                    player.health--;
+                    player.healthLoss();
                     player.timer = 20;
                 }
 
                 //Enemies health loss
                 for (var j = 0, sl = shots.length; j < sl; j++) {
                     if (shots[j].intersects(enemies[i])) {
-                        enemies[i].health--;
-                        shots.splice(j--, 1);
+                        enemies[i].healthLoss();
+                        shots.splice(j--, 1);//dissapear shot
                         sl--;
                     }
                 }
@@ -105,14 +104,14 @@
                 if(enemies[i].health<1){
                     score++;
                     enemies.splice(i, 1);
-                    enemies.push(new Rectangle(random(canvas.width / 10) * 10, 0, 10, 10, 2));
+                    enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
                 }
                 
             }
 
             // Move Shots
             for (var i = 0, l = shots.length; i < l; i++) {
-                shots[i].y -= 10;
+                shots[i].move('y', 10, 'up');
                 if (shots[i].y < 0) {
                     shots.splice(i--, 1);
                     l--;
@@ -167,7 +166,7 @@
 
             ctx.textAlign= 'center';
             ctx.fillStyle = '#f00';
-            ctx.fillText(enemies[i].health, enemies[i].x+6, enemies[i].y+8);
+            ctx.fillText(enemies[i].health, enemies[i].x+5, enemies[i].y+8);
         }
         ctx.textAlign = 'center';
 
@@ -193,57 +192,6 @@
             function (callback) { window.setTimeout(callback, 17); };
     })();
 
-    function Rectangle(x, y, width, height, health) {
-        this.x = (x === undefined) ? 0 : x;
-        this.y = (y === undefined) ? 0 : y;
-        this.width = (width === undefined) ? 0 : width;
-        this.height = (height === undefined) ? this.width : height;
-        this.health = (health === undefined) ? 1 : health;
-        this.timer = 0;
-    }
-
-    Rectangle.prototype = {
-        constructor: Rectangle,
-
-        intersects: function (rect) {
-
-            if (rect === undefined) {
-                window.console.warn('Missing parameters');
-            }
-
-            else {
-                return (this.x < rect.x + rect.width &&
-                    this.x + this.width > rect.x &&
-                    this.y < rect.y + rect.height &&
-                    this.y + this.height > rect.y);
-            }
-        },
-
-        fill: function (ctx) {
-
-            if (ctx === undefined) {
-                window.console.warn('Missing parameters on function fill');
-            }
-
-            else {
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-            }
-        },
-
-        drawImage: function (ctx, img) {
-            if (img === undefined) {
-                window.console.warn('Missing parameters on function drawImage');
-            } else {
-                if (img.width) {
-                    ctx.drawImage(img, this.x, this.y);
-                } else {
-                    ctx.strokeRect(this.x, this.y, this.width, this.height);
-                }
-            }
-        }
-
-    }
-
     function random(max) {
         return ~~(Math.random() * max);
     }
@@ -256,11 +204,91 @@
         enemies.length = 0;
         //Create frist 4 enemies
         for (var c = 0; c < 4; c++) {
-            enemies.push(new Rectangle(random(canvas.width / 10) * 10, 0, 10, 10, 2));
+            enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
         }
         gameOver = false;
         player.timer = 0;
         player.health = 3;
+    }
+
+    class Rectangle {
+
+        constructor(x, y, width, height) {
+            this.x = (x === undefined) ? 0 : x;
+            this.y = (y === undefined) ? 0 : y;
+            this.width = (width === undefined) ? 0 : width;
+            this.height = (height === undefined) ? this.width : height;
+        }
+    
+        intersects(rect) {
+    
+            if (rect === undefined) {
+                window.console.warn('Missing parameters');
+            }
+    
+            else {
+                return (this.x < rect.x + rect.width &&
+                    this.x + this.width > rect.x &&
+                    this.y < rect.y + rect.height &&
+                    this.y + this.height > rect.y);
+            }
+        }
+    
+        fill(ctx) {
+    
+            if (ctx === undefined) {
+                window.console.warn('Missing parameters on function fill');
+            }
+    
+            else {
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+    
+        drawImage(ctx, img) {
+            if (img === undefined) {
+                window.console.warn('Missing parameters on function drawImage');
+            } else {
+                if (img.width) {
+                    ctx.drawImage(img, this.x, this.y);
+                } else {
+                    ctx.strokeRect(this.x, this.y, this.width, this.height);
+                }
+            }
+        }
+    
+        move(axis, unit, direction) {
+            if (axis === 'x') {
+                if (direction === 'left') {
+                    this.x -= unit;
+                }
+                if (direction === 'right') {
+                    this.x += unit;
+                }
+            }
+            if (axis === 'y') {
+                if (direction === 'up') {
+                    this.y -= unit;
+                }
+                if (direction === 'down') {
+                    this.y += unit;
+                }
+            }
+        }
+    
+    }
+
+    class SpaceShip extends Rectangle {
+        constructor(x, y, width, height, health) {
+            super(x, y, width, height);
+            this.health = (health === undefined) ? 1 : health;
+            this.timer = 0;
+        }
+    
+        healthLoss() {
+            this.health--;
+        }
+    
     }
 
 })();
