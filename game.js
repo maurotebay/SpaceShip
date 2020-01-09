@@ -121,6 +121,7 @@
 
                 //Kill enemies
                 if (enemies[i].health < 1) {
+                    //drop powerup
                     let r = random(20);
                     if (r < 5) {
                         if (r == 0) {   //type 1 is multi shot
@@ -261,11 +262,11 @@
         ctx.fillText('Health: ' + player.health, 160, 10);
 
         //print star
-        for(i=0,l=stars.length;i<l;i++){
-            var c=255-Math.abs(100-stars[i].timer);
-            ctx.fillStyle='rgb('+c+','+c+','+c+')';
-            ctx.fillRect(stars[i].x,stars[i].y,1,1);
-            }
+        for (i = 0, l = stars.length; i < l; i++) {
+            var c = 255 - Math.abs(100 - stars[i].timer);
+            ctx.fillStyle = 'rgb(' + c + ',' + c + ',' + c + ')';
+            ctx.fillRect(stars[i].x, stars[i].y, 1, 1);
+        }
     }
 
     document.addEventListener('keydown', function (evt) {
@@ -291,8 +292,6 @@
 
     function reset() {
         score = 0;
-        player.x = 90;
-        player.y = 280;
         shots.length = 0;
         enemies.length = 0;
         //Create frist 4 enemies
@@ -300,9 +299,7 @@
             enemies.push(new SpaceShip(random(canvas.width / 10) * 10, 0, 10, 10, 2));
         }
         gameOver = false;
-        player.timer = 0;
-        player.health = 3;
-        player.multiShots = 1;
+        player.initialize(90, 280, 3, 1);
     }
 
     class Rectangle {
@@ -396,6 +393,14 @@
                 score += 5;
                 messages.push(new Message('+5', player.x, player.y));
             }
+        }
+
+        initialize(x, y, health, multi) {
+            this.x = x;
+            this.y = y;
+            this.health = health;
+            this.timer = 0;
+            this.multiShots = (multi === undefined) ? 0 : multi;
         }
 
     }
