@@ -19,6 +19,7 @@
     var enemies = [];
     var powerups = [];
     var messages = [];
+    var stars = [];
 
     function init() {
         canvas = document.getElementById('canvas');
@@ -26,6 +27,10 @@
         canvas.width = 200;
         canvas.height = 300;
         player = new SpaceShip(90, 280, 10, 10, 3);
+
+        //create stars
+        for (var i = 0; i < 100; i++)
+            stars.push(new Star(random(canvas.width), random(canvas.height), random(100)));
 
         //Create frist 4 enemies
         for (var c = 0; c < 4; c++) {
@@ -180,6 +185,16 @@
 
         }
 
+        // Move Stars
+        for (i = 0, l = stars.length; i < l; i++) {
+            stars[i].y++;
+            if (stars[i].y > canvas.height)
+                stars[i].y = 0;
+            stars[i].timer += 10;
+            if (stars[i].timer > 100)
+                stars[i].timer -= 100;
+        }
+
         // Pause/Unpause
         if (lastPress == KEY_ENTER) {
             pause = !pause;
@@ -244,6 +259,13 @@
 
         //print health
         ctx.fillText('Health: ' + player.health, 160, 10);
+
+        //print star
+        for(i=0,l=stars.length;i<l;i++){
+            var c=255-Math.abs(100-stars[i].timer);
+            ctx.fillStyle='rgb('+c+','+c+','+c+')';
+            ctx.fillRect(stars[i].x,stars[i].y,1,1);
+            }
     }
 
     document.addEventListener('keydown', function (evt) {
@@ -386,7 +408,7 @@
 
     }
 
-    class Message{
+    class Message {
         constructor(string, x, y) {
             this.string = (string === undefined) ? '?' : string;
             this.x = (x === undefined) ? 0 : x;
@@ -407,6 +429,14 @@
             if (direction === 'down') {
                 this.y += unit;
             }
+        }
+    }
+
+    class Star {
+        constructor(x, y, timer) {
+            this.x = (x == null) ? 0 : x;
+            this.y = (y == null) ? 0 : y;
+            this.timer = (timer == null) ? 0 : timer;
         }
     }
 
